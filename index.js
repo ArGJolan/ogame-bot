@@ -28,7 +28,7 @@ const app = async function () {
   await sleep(2000)
   await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php`)
 
-  const planetsId = await browser.getPage().$$eval('span.planet-koords', els => {
+  const planetsId = await page.$$eval('span.planet-koords', els => {
     return els.map(item => {
       return item.parentNode.parentNode.id
     })
@@ -56,6 +56,7 @@ const app = async function () {
 
   for (let planet of planetsId) {
     planets[planet] = new Planet({ config: config.universe, researches, name: planet })
+    await planets[planet].setCoordinates(page)
   }
 
   const SinglePlanet = require('./scenarios/single-planet')
