@@ -5,7 +5,7 @@ class Building extends Data {
    * @param {String} planet - name of the planet
    * @param {String} type - type of building (can be 'resources' or 'station')
    * @param {String} name - name of the building (e.g 'metalMine')
-   * @param {Integer} level - Level of the building
+   * @param {Number} level - Level of the building
    * @param {Date} expiration - Data expiration
    */
   constructor (planet, type, name, level, expiration = new Date('2030/12/31')) {
