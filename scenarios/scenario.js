@@ -12,6 +12,10 @@ class Scenario {
     this.fleets = fleets
   }
 
+  /**
+   * Sleep
+   * @param {Number} ms - Sleep duration in milliseconds
+   */
   async sleep (ms) {
     return new Promise(resolve => {
       setTimeout(resolve, ms)
