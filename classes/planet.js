@@ -103,6 +103,20 @@ class Planet {
     ]
   }
 
+  getCoordinates () {
+    const [, galaxy, system, position] = (this.coordinates.match(/(?:\[|)([0-9]+):([0-9]+):([0-9]+)(?:\]|)/) || []).map(num => +num)
+    return { galaxy, system, position }
+  }
+
+  isCoordinates (coordinates) {
+    const [, galaxy, system, position] = coordinates.match(/(?:\[|)([0-9]+):([0-9]+):([0-9]+)(?:\]|)/) || []
+    return `[${galaxy}:${system}:${position}]` === this.coordinates
+  }
+
+  async setCoordinates (page) {
+    this.coordinates = await page.$eval(`#${this.name} .planet-koords`, el => el.innertText)
+  }
+
   hasResources ({ metal = 0, crystal = 0, deuterium = 0 }) {
     console.log({metal, crystal, deuterium})
     console.log(this.metalStock.getValue(), this.crystalStock.getValue(), this.deuteriumStock.getValue())
@@ -114,9 +128,9 @@ class Planet {
       const curentPlanet = await page.$eval('a.planetlink.active', el => {
         return el.parentNode.id
       })
-      if (force || curentPlanet !== this.planet) {
-        console.log('NOT ON THE RIGHT PLANET', curentPlanet, this.planet)
-        await page.click(`#${this.planet} > a.planetlink`)
+      if (force || curentPlanet !== this.name) {
+        console.log('NOT ON THE RIGHT PLANET', curentPlanet, this.name)
+        await page.click(`#${this.name} > a.planetlink`)
         await this.sleep(2000)
       }
     } catch (e) {}
