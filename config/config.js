@@ -24,5 +24,8 @@ module.exports = {
       width: 1920,
       height: 1007
     }
+  },
+  AGO: {
+    configString: ''
   }
 }

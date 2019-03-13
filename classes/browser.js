@@ -7,12 +7,18 @@ class Browser {
   }
 
   async run () {
+    const AGOPath = path.resolve('./AntiGameReborn')
+
     this.browser = await puppeteer.launch({
       ...this.config,
+      args: [
+        `--disable-extensions-except=${AGOPath}`,
+        `--load-extension=${AGOPath}`,
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+      ],
       headless: false
     })
     this.page = await this.browser.newPage()
-    await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36')
   }
 
   getPage () {

@@ -2,6 +2,8 @@ const Planet = require('./classes/planet')
 const config = require('./config')
 const Browser = require('./classes/browser')
 const Research = require('./classes/research')
+// const express = require('express')
+// const bodyParser = require('body-parser')
 
 const sleep = async (ms) => {
   return new Promise(resolve => {
@@ -26,7 +28,26 @@ const app = async function () {
 
   await page.click('#joinGame > button')
   await sleep(2000)
-  await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php`)
+  await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+
+  // LOAD AGO CONFIG
+  await page.click('#ago_menubutton')
+  await sleep(1500)
+  await page.click('#ago_menu_Data')
+  await sleep(1500)
+  await page.type('#ago_menu_D9C', config.AGO.configString)
+  await sleep(1500)
+  await page.click('#ago_menu_button_D80')
+  await sleep(1500)
+  await page.click('#ago_menu_button_D9E')
+  await sleep(1500)
+  await page.click('#ago_menu_button_AM3')
+  await sleep(1500)
+
+  await page.evaluate(() => {
+    localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', {'sortDesc': true, 'sortSequence': 'loot', 'checkedMessages': []})
+  })
+  await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
 
   const planetsId = await page.$$eval('span.planet-koords', els => {
     return els.map(item => {
@@ -59,14 +80,15 @@ const app = async function () {
     await planets[planet].setCoordinates(page)
   }
 
-  const SinglePlanet = require('./scenarios/single-planet')
-  const InactiveRaid = require('./scenarios/inactive-raid')
+  // const SinglePlanet = require('./scenarios/single-planet')
+  // const InactiveRaid = require('./scenarios/inactive-raid')
   const scenarios = [
-    new SinglePlanet(planets, researches, {}),
-    new InactiveRaid(planets, researches, {})
+    // new SinglePlanet(planets, researches, {}),
+    // new InactiveRaid(planets, researches, {})
   ]
 
-  let isRunning = false
+  // let isRunning = false
+  let isRunning = true
   setInterval(async () => {
     if (isRunning) {
       return
