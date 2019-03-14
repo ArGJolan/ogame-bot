@@ -2,12 +2,12 @@ const Planet = require('./classes/planet')
 const config = require('./config')
 const Browser = require('./classes/browser')
 const Research = require('./classes/research')
-// const express = require('express')
-// const bodyParser = require('body-parser')
+const express = require('express')
+const bodyParser = require('body-parser')
 
 const sleep = async (ms) => {
   return new Promise(resolve => {
-    setTimeout(resolve, ms)
+    setTimeout(resolve, Math.floor((Math.random() * 0.4 + 0.8) * ms))
   })
 }
 
@@ -31,23 +31,32 @@ const app = async function () {
   await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
 
   // LOAD AGO CONFIG
-  await page.click('#ago_menubutton')
-  await sleep(1500)
-  await page.click('#ago_menu_Data')
-  await sleep(1500)
-  await page.type('#ago_menu_D9C', config.AGO.configString)
-  await sleep(1500)
-  await page.click('#ago_menu_button_D80')
-  await sleep(1500)
-  await page.click('#ago_menu_button_D9E')
-  await sleep(1500)
-  await page.click('#ago_menu_button_AM3')
-  await sleep(1500)
+  try {
+    // throw new Error('XD')
+    await page.click('#ago_menubutton')
+    await sleep(1500)
+    await page.click('#ago_menu_Data')
+    await sleep(1500)
+    // await page.type('#ago_menu_D9C', config.AGO.configString, { delay: 0 })
+    await page.$eval('#ago_menu_D9C', (el, args) => {
+      el.value = args[0]
+      // return args
+    }, [config.AGO.configString])
+    await sleep(1500)
+    await page.click('#ago_menu_button_D80')
+    await sleep(1500)
+    await page.click('#ago_menu_button_D9E')
+    await sleep(1500)
+  } catch (e) {
+    console.error('Could not load AGO config', e)
+  }
 
   await page.evaluate(() => {
-    localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', {'sortDesc': true, 'sortSequence': 'loot', 'checkedMessages': []})
+    localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
   })
+  await sleep(1000)
   await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+  await sleep(5000)
 
   const planetsId = await page.$$eval('span.planet-koords', els => {
     return els.map(item => {
@@ -86,6 +95,38 @@ const app = async function () {
     // new SinglePlanet(planets, researches, {}),
     // new InactiveRaid(planets, researches, {})
   ]
+
+  const server = express()
+
+  server.use(bodyParser.json())
+
+  server.post('/scenario/:name', (req, res, next) => {
+    // TODO: Enable that one day
+    // if (!['spy'].includes(req.params.name)) {
+    //   return next(new Error('Unknown scenario'))
+    // }
+    const ScenarioClass = require(`./scenarios/${req.params.name}`)
+    const scenario = new ScenarioClass(planets, researches, {})
+
+    scenario.action(page, req.body).then(data => {
+      res.json(data)
+    }).catch(e => {
+      next(e)
+    })
+  })
+
+  server.use((err, req, res, next) => {
+    if (!err.status) {
+      err.status = 400
+    }
+    res.status(err.status)
+    res.json({ error: err.message })
+    console.error(err.stack)
+  })
+
+  server.listen(4242, '127.0.0.1', () => {
+    console.log('Listening on 127.0.0.1:4242')
+  })
 
   // let isRunning = false
   let isRunning = true
