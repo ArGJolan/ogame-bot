@@ -35,17 +35,18 @@ class Data {
     }
   }
 
-  async forcePlanet (page, planet, force) {
+  async forcePlanet (page, planet = this.planet, force) {
     try {
       const curentPlanet = await page.$eval('a.planetlink.active', el => {
         return el.parentNode.id
       })
       if (force || curentPlanet !== planet) {
-        console.log('NOT ON THE RIGHT PLANET', curentPlanet, planet)
-        await page.click(`#${this.planet} > a.planetlink`)
+        await page.click(`#${planet} > a.planetlink`)
         await this.sleep(2000)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[DATA] FAILED TO SWITCH PLANET', e)
+    }
   }
 
   static revalidate (name, value, expiration) {

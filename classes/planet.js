@@ -103,6 +103,12 @@ class Planet {
     ]
   }
 
+  async sleep (ms) {
+    return new Promise(resolve => {
+      setTimeout(resolve, ms)
+    })
+  }
+
   getCoordinates () {
     const [, galaxy, system, position] = (this.coordinates.match(/(?:\[|)([0-9]+):([0-9]+):([0-9]+)(?:\]|)/) || []).map(num => +num)
     return { galaxy, system, position }
@@ -114,7 +120,7 @@ class Planet {
   }
 
   async setCoordinates (page) {
-    this.coordinates = await page.$eval(`#${this.name} .planet-koords`, el => el.innertText)
+    this.coordinates = await page.$eval(`#${this.name} .planet-koords`, el => el.innerText)
   }
 
   hasResources ({ metal = 0, crystal = 0, deuterium = 0 }) {
@@ -129,11 +135,12 @@ class Planet {
         return el.parentNode.id
       })
       if (force || curentPlanet !== this.name) {
-        console.log('NOT ON THE RIGHT PLANET', curentPlanet, this.name)
         await page.click(`#${this.name} > a.planetlink`)
         await this.sleep(2000)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[PLANET] FAILED TO SWITCH PLANET', e)
+    }
   }
 
   async research ({ type, level }, page) {

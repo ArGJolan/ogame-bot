@@ -158,13 +158,12 @@ class Building extends Data {
         return el.parentNode.id
       })
       if (force || curentPlanet !== planet) {
-        console.log('NOT ON THE RIGHT PLANET', curentPlanet, planet)
-        await page.click(`#${this.planet} > a.planetlink`)
+        await page.click(`#${planet} > a.planetlink`)
         await this.sleep(2000)
-      } else {
-        console.log('RIGHT PLANET !!', this.planet, planet)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[BUILDING] FAILED TO SWITCH PLANET', e)
+    }
   }
 }
 
