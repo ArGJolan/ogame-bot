@@ -18,7 +18,7 @@ class Scenario {
    */
   async sleep (ms) {
     return new Promise(resolve => {
-      setTimeout(resolve, ms)
+      setTimeout(resolve, Math.floor((Math.random() * 0.4 + 0.8) * ms))
     })
   }
 
