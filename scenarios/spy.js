@@ -39,7 +39,7 @@ class Spy extends Scenario {
     for (let position of inactives) {
       await this.waitUntilFleetAvailable(page)
       await page.click(`[rel="planet${position}"] .ListImage a img`)
-      await this.sleep(2000)
+      await this.sleep(1300)
     }
   }
 
@@ -60,8 +60,12 @@ class Spy extends Scenario {
       await page.type('#system_input', `${currentSystem}`)
       await this.sleep(200)
       await page.click('#galaxyHeader .btn_blue')
-      await this.sleep(2500)
-      await this.spyCurrentSystem(page)
+      await this.sleep(1800)
+      try {
+        await this.spyCurrentSystem(page)
+      } catch (e) {
+        console.error('Could not spy system', currentSystem, 'from', planet.getCoordinates())
+      }
     }
   }
 
@@ -74,8 +78,13 @@ class Spy extends Scenario {
     if (!planetsCoordinates || !systemDelta) {
       throw new Error('Invalid parametters, expected planetsCoordinates, systemDelta')
     }
+    const shuffledCoordinates = [...planetsCoordinates]
+    for (let i = shuffledCoordinates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledCoordinates[i], shuffledCoordinates[j]] = [shuffledCoordinates[j], shuffledCoordinates[i]]
+    }
     // Spy from each provided planet
-    for (let coordinates of planetsCoordinates) {
+    for (let coordinates of shuffledCoordinates) {
       let planet = null
 
       // Find the planet by its coordinates
@@ -86,32 +95,15 @@ class Spy extends Scenario {
       }
 
       if (planet) {
-        await this.spyFromPlanet(page, planet, systemDelta)
+        try {
+          await this.spyFromPlanet(page, planet, systemDelta)
+        } catch (e) {
+          console.error('Could not spy from planet', coordinates)
+        }
       } else {
         console.error('Could not find planet', coordinates)
       }
     }
-
-    // Wait till every probe is back
-    // await this.sleep(120000)
-
-    // await this.forcePage(page, 'messages')
-
-    // const messagePaginationString = await page.$eval('#fleetsgenericpage > ul > ul:nth-child(1) > li.curPage', el => {
-    //   return el.innerText
-    // })
-    // let [currentPage, maxPage] = messagePaginationString.split('/').map(page => +page)
-    // let spyReports = []
-
-    // while (currentPage <= maxPage) {
-    //   const currentPageSpyReports = await this.parseSpyReports(page)
-    //   spyReports = [...spyReports, ...currentPageSpyReports]
-    //   if (currentPage !== maxPage) {
-    //     await page.click('#fleetsgenericpage > ul > ul:nth-child(1) > li:nth-child(4)')
-    //     await this.sleep(3500)
-    //   }
-    //   currentPage++
-    // }
   }
 }
 
