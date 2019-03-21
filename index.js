@@ -11,13 +11,10 @@ const sleep = async (ms) => {
   })
 }
 
-const app = async function () {
-  const browser = new Browser(config.puppeteer)
+const login = async (browser) => {
+  let page = await browser.newPage()
 
-  await browser.run()
-  await browser.goTo('https://fr.ogame.gameforge.com/')
-
-  const page = browser.getPage()
+  await page.goto('https://fr.ogame.gameforge.com/')
 
   await page.click('#ui-id-1')
   await page.type('#usernameLogin', config.account.username)
@@ -27,8 +24,19 @@ const app = async function () {
   await sleep(5000)
 
   await page.click('#joinGame > button')
-  await sleep(2000)
-  await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+  await sleep(5000)
+  // await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+  // await sleep(5000)
+
+  const pages = await browser.pages()
+
+  for (let cPage of pages) {
+    if (cPage.url() !== `https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview&relogin=1`) {
+      await cPage.close()
+    } else {
+      page = cPage
+    }
+  }
 
   // LOAD AGO CONFIG
   try {
@@ -50,15 +58,23 @@ const app = async function () {
   } catch (e) {
     console.error('Could not load AGO config', e)
   }
+  return page
+}
 
-  await page.evaluate(() => {
+const app = async function () {
+  const browser = new Browser(config.puppeteer)
+  await browser.run()
+
+  this.page = await login(browser)
+
+  await this.page.evaluate(() => {
     localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
   })
   await sleep(1000)
-  await browser.goTo(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+  await this.page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
   await sleep(5000)
 
-  const planetsId = await page.$$eval('span.planet-koords', els => {
+  const planetsId = await this.page.$$eval('span.planet-koords', els => {
     return els.map(item => {
       return item.parentNode.parentNode.id
     })
@@ -86,12 +102,14 @@ const app = async function () {
 
   for (let planet of planetsId) {
     planets[planet] = new Planet({ config: config.universe, researches, name: planet })
-    await planets[planet].setCoordinates(page)
+    await planets[planet].setCoordinates(this.page)
   }
 
   // const SinglePlanet = require('./scenarios/single-planet')
   // const InactiveRaid = require('./scenarios/inactive-raid')
+  const WatchDog = require('./scenarios/watchdog')
   const scenarios = [
+    new WatchDog(planets, researches, {})
     // new SinglePlanet(planets, researches, {}),
     // new InactiveRaid(planets, researches, {})
   ]
@@ -100,7 +118,7 @@ const app = async function () {
 
   server.use(bodyParser.json())
 
-  server.post('/scenario/:name', (req, res, next) => {
+  server.post('/scenario/:name', async (req, res, next) => {
     // TODO: Enable that one day
     // if (!['spy'].includes(req.params.name)) {
     //   return next(new Error('Unknown scenario'))
@@ -108,7 +126,9 @@ const app = async function () {
     const ScenarioClass = require(`./scenarios/${req.params.name}`)
     const scenario = new ScenarioClass(planets, researches, {})
 
-    scenario.action(page, req.body).then(data => {
+    await this.page.close()
+    this.page = await login(browser)
+    scenario.action(this.page, req.body).then(data => {
       res.json(data)
     }).catch(e => {
       next(e)
@@ -128,8 +148,7 @@ const app = async function () {
     console.log('Listening on 127.0.0.1:4242')
   })
 
-  // let isRunning = false
-  let isRunning = true
+  let isRunning = false
   setInterval(async () => {
     if (isRunning) {
       return
@@ -137,22 +156,26 @@ const app = async function () {
     isRunning = true
 
     try {
+      /**
+       * TMP COMMENT
+       * UNCOMMENT WHEN EVERYTHING IS IN A DB AND WE CAN IMPORT AT STARTUP
+       */
       // Revalidate planets
-      for (let name of Object.keys(planets)) {
-        const planet = planets[name]
-        await planet.autoRevalidate(page)
-      }
-      // Revalidate researches
-      for (let name of Object.keys(researches)) {
-        const research = researches[name]
-        if (!research.isValid()) {
-          await research.autoRevalidate(page)
-        }
-      }
+      // for (let name of Object.keys(planets)) {
+      //   const planet = planets[name]
+      //   await planet.autoRevalidate(this.page)
+      // }
+      // // Revalidate researches
+      // for (let name of Object.keys(researches)) {
+      //   const research = researches[name]
+      //   if (!research.isValid()) {
+      //     await research.autoRevalidate(this.page)
+      //   }
+      // }
 
       for (let scenario of scenarios) {
         if (scenario.isAppliable()) {
-          await scenario.loop(page)
+          await scenario.loop(this.page)
         }
       }
     } catch (e) {
