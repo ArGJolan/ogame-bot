@@ -21,6 +21,15 @@ class Browser {
     this.page = await this.browser.newPage()
   }
 
+  async pages () {
+    return this.browser.pages()
+  }
+
+  async newPage () {
+    this.page = await this.browser.newPage()
+    return this.page
+  }
+
   getPage () {
     return this.page
   }
