@@ -16,6 +16,9 @@ class Raid extends Scenario {
   }
 
   async filterOutUninterestingReports (page) {
+    /**
+     * TODO: Set AGO min resource to 2M and go up if too many reports are kept
+     */
     for (let i = 0; i < 50; i++) {
       await this.forcePage(page, 'messages', true)
       await this.sleep(2500)
@@ -70,6 +73,9 @@ class Raid extends Scenario {
         await this.forcePage(page, 'messages')
         await this.sleep(2500)
         const coords = await page.$eval(`#spyTable .row:nth-child(${spyCount}) a.txt_link`, el => el.innerText)
+        if (!coords) {
+          maxFleets = 0
+        }
         const planet = this.getClosestPlanet(planetsCoordinates, coords)
         await planet.forcePlanet(page)
         await this.sleep(2500)
@@ -87,6 +93,10 @@ class Raid extends Scenario {
       }
       spyCount++
     }
+
+    await this.forcePage(page, 'messages')
+    await this.sleep(2500)
+    await page.click('input[name="delShown"]')
   }
 }
 
