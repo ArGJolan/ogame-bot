@@ -11,6 +11,6 @@
   "dependencies": {
     "express": "^4.16.4",
     "lodash": "^4.17.11",
-    "puppeteer": "^1.12.2"
+    "puppeteer": "^1.13.0"
   }
 }
