@@ -18,6 +18,7 @@ class Raid extends Scenario {
   async filterOutUninterestingReports (page) {
     /**
      * TODO: Set AGO min resource to 2M and go up if too many reports are kept
+     * TODO: Remove reports with activity
      */
     for (let i = 0; i < 50; i++) {
       await this.forcePage(page, 'messages', true)
@@ -68,7 +69,7 @@ class Raid extends Scenario {
 
     let spyCount = 1
     await this.filterOutUninterestingReports(page)
-    while (maxFleets) {
+    while (maxFleets && spyCount < 50) {
       try {
         await this.forcePage(page, 'messages')
         await this.sleep(2500)
@@ -86,17 +87,13 @@ class Raid extends Scenario {
         await page.click('#continue')
         await this.sleep(2500)
         await page.click('#start')
-        await this.sleep(2500)
+        await this.sleep(3000)
         maxFleets--
       } catch (e) {
         console.error(`Could not attack n°${spyCount}: ${e}`)
       }
       spyCount++
     }
-
-    await this.forcePage(page, 'messages')
-    await this.sleep(2500)
-    await page.click('input[name="delShown"]')
   }
 }
 
