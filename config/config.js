@@ -27,5 +27,11 @@ module.exports = {
   },
   AGO: {
     configString: ''
+  },
+  notifier: {
+    pushbullet: {
+      url: 'https://api.pushbullet.com/v2/pushes',
+      method: 'POST'
+    }
   }
 }
