@@ -70,18 +70,20 @@ class WatchDog extends Scenario {
       }
 
       const info = await page.$eval(`#eventRow-${id}`, el => {
+        const comp = el.nextElementSibling.childNodes[0].childNodes[1].innerText.split('\n').map(item => item.trim())
+        comp.splice(0, 7)
         return {
           arrival: el.dataset.arrivalTime,
-          comp: el.nextElementSibling.childNodes[0].childNodes[1].innerText
+          comp: comp.join('\r\n'),
+          attacker: el.nextElementSibling.childNodes[0].childNodes[0].childNodes[0].innerText
         }
       })
 
       if (this.ids[id].arrival !== info.arrival) {
-        console.log('Someone is attacking', info.comp)
-        await this.notifier.notifyAll('►►► ATTACK ◄◄◄', 'Someone is attacking you\r\n' + this.info.comp)
+        const time = new Date(info.arrival * 1000)
+        const format = num => `${num < 10 ? '0' : ''}${num}`
+        await this.notifier.notifyAll(`►►► ATTACK ◄◄◄`, `[${format(time.getHours())}:${format(time.getMinutes())}:${format(time.getSeconds())}] ${info.attacker} is attacking you with :\r\n` + info.comp)
         this.ids[id] = info
-      } else {
-        console.log(this.ids[id].arrival, info.arrival)
       }
     }
   }
