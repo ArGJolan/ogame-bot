@@ -1,6 +1,7 @@
 const Scenario = require('./scenario')
 const config = require('../config')
 const Notifier = require('../classes/notifier')
+const mod = (x, n) => (x % n + n) % n
 
 class WatchDog extends Scenario {
   constructor (planets, researches, fleets) {
@@ -32,10 +33,10 @@ class WatchDog extends Scenario {
       this.nextRefresh = 10 + Math.floor(Math.random() * 10)
     }
 
-    if (Math.abs(currentMinutes - lastRefreshMinutes) > this.nextRefresh) {
+    if (mod(currentMinutes - lastRefreshMinutes, 60) > this.nextRefresh) {
       console.log(`Page has not changed in ${this.nextRefresh} minutes, refreshing`)
       this.nextRefresh = 0
-      await this.sleep(Math.floor(Math.random() * 30))
+      await this.sleep(Math.floor(Math.random() * 30000))
       await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
       await this.sleep(10000)
       return
