@@ -32,7 +32,7 @@ class Spy extends Scenario {
    * @param {Object} page - Puppeteer page object
    */
   async spyCurrentSystem (page) {
-    const inactives = await page.$$eval('.inactive_filter:not(.vacation_filter) .position', els => {
+    const inactives = await page.$$eval('.inactive_filter:not(.vacation_filter):not(.ago_highlight) .position', els => {
       return els.map(el => el.innerText)
     })
 
@@ -78,6 +78,12 @@ class Spy extends Scenario {
     if (!planetsCoordinates || !systemDelta) {
       throw new Error('Invalid parametters, expected planetsCoordinates, systemDelta')
     }
+
+    await this.forcePage(page, 'messages')
+    await this.sleep(2500)
+    await page.click('input[name="delShown"]')
+    await this.sleep(5000)
+
     const shuffledCoordinates = [...planetsCoordinates]
     for (let i = shuffledCoordinates.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
