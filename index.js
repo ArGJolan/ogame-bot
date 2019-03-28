@@ -11,20 +11,31 @@ const sleep = async (ms) => {
   })
 }
 
-const login = async (browser) => {
+const login = async (browser, firstLogin) => {
   let page = await browser.newPage()
 
-  await page.goto('https://fr.ogame.gameforge.com/')
+  await page.goto(`https://${firstLogin ? 'fr' : 'lobby'}.ogame.gameforge.com/`)
 
-  await page.click('#ui-id-1')
-  await page.type('#usernameLogin', config.account.username)
-  await page.type('#passwordLogin', config.account.password)
-  await page.click('#loginSubmit')
+  if (firstLogin) {
+    await page.click('#ui-id-1')
+    await page.type('#usernameLogin', config.account.username)
+    await page.type('#passwordLogin', config.account.password)
+    await page.click('#loginSubmit')
+  }
 
   await sleep(5000)
 
   await page.click('#joinGame > button')
   await sleep(5000)
+
+  // TODO: Fix timeout that occurs sometimes
+  let openPages = []
+  while (!openPages.includes(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview&relogin=1`)) {
+    console.log('Not logged in yet, waiting')
+    await sleep(1000)
+    openPages = await browser.pages()
+    openPages = openPages.map(item => item.url())
+  }
   // await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
   // await sleep(5000)
 
@@ -38,6 +49,9 @@ const login = async (browser) => {
     }
   }
 
+  if (!firstLogin) {
+    return page
+  }
   // LOAD AGO CONFIG
   try {
     // throw new Error('XD')
@@ -58,14 +72,17 @@ const login = async (browser) => {
   } catch (e) {
     console.error('Could not load AGO config', e)
   }
-  return page
+  const nPages = await browser.pages()
+  return nPages[0]
 }
 
 const app = async function () {
   const browser = new Browser(config.puppeteer)
   await browser.run()
 
-  this.page = await login(browser)
+  this.page = await login(browser, true)
+
+  await sleep(5000)
 
   await this.page.evaluate(() => {
     localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
@@ -128,6 +145,7 @@ const app = async function () {
 
     await this.page.close()
     this.page = await login(browser)
+    await sleep(5000)
     scenario.action(this.page, req.body).then(data => {
       res.json(data)
     }).catch(e => {
