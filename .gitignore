@@ -3,3 +3,5 @@ screenshot.png
 package-lock.json
 
 *.local.js
+*.xpi
+cm_linux_amd64
