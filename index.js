@@ -1,92 +1,23 @@
 const Planet = require('./classes/planet')
 const config = require('./config')
-const Browser = require('./classes/browser')
 const Research = require('./classes/research')
 const express = require('express')
 const bodyParser = require('body-parser')
+const Browser = require(`./classes/browsers/${config.browser}`)
+const ogame = require('./classes/ogame')
+const { sleep } = require('./utils')
 
-const sleep = async (ms) => {
-  return new Promise(resolve => {
-    setTimeout(resolve, Math.floor((Math.random() * 0.4 + 0.8) * ms))
-  })
-}
-
-const login = async (browser, firstLogin) => {
-  let page = await browser.newPage()
-
-  await page.goto(`https://${firstLogin ? 'fr' : 'lobby'}.ogame.gameforge.com/`)
-
-  if (firstLogin) {
-    await page.click('#ui-id-1')
-    await page.type('#usernameLogin', config.account.username)
-    await page.type('#passwordLogin', config.account.password)
-    await page.click('#loginSubmit')
-  }
-
-  await sleep(5000)
-
-  await page.click('#joinGame > button')
-  await sleep(5000)
-
-  // TODO: Fix timeout that occurs sometimes
-  let openPages = []
-  while (!openPages.includes(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview&relogin=1`)) {
-    console.log('Not logged in yet, waiting')
-    await sleep(1000)
-    openPages = await browser.pages()
-    openPages = openPages.map(item => item.url())
-  }
-  // await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
-  // await sleep(5000)
-
-  const pages = await browser.pages()
-
-  for (let cPage of pages) {
-    if (cPage.url() !== `https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview&relogin=1`) {
-      await cPage.close()
-    } else {
-      page = cPage
-    }
-  }
-
-  if (!firstLogin) {
-    return page
-  }
-  // LOAD AGO CONFIG
-  try {
-    // throw new Error('XD')
-    await page.click('#ago_menubutton')
-    await sleep(1500)
-    await page.click('#ago_menu_Data')
-    await sleep(1500)
-    // await page.type('#ago_menu_D9C', config.AGO.configString, { delay: 0 })
-    await page.$eval('#ago_menu_D9C', (el, args) => {
-      el.value = args[0]
-      // return args
-    }, [config.AGO.configString])
-    await sleep(1500)
-    await page.click('#ago_menu_button_D80')
-    await sleep(1500)
-    await page.click('#ago_menu_button_D9E')
-    await sleep(1500)
-  } catch (e) {
-    console.error('Could not load AGO config', e)
-  }
-  const nPages = await browser.pages()
-  return nPages[0]
-}
-
-const app = async function () {
+const main = async function () {
   const browser = new Browser(config.puppeteer)
   await browser.run()
 
-  this.page = await login(browser, true)
+  this.page = await ogame.login(browser, true)
 
   await sleep(5000)
 
-  await this.page.evaluate(() => {
-    localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
-  })
+  // await this.page.evaluate(() => {
+  //   localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
+  // })
   await sleep(1000)
   await this.page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
   await sleep(5000)
@@ -144,7 +75,7 @@ const app = async function () {
     const scenario = new ScenarioClass(planets, researches, {})
 
     await this.page.close()
-    this.page = await login(browser)
+    this.page = await ogame.login(browser)
     await sleep(5000)
     scenario.action(this.page, req.body).then(data => {
       res.json(data)
@@ -203,7 +134,7 @@ const app = async function () {
   }, 500)
 }
 
-app().then(() => {
+main().then(() => {
   console.log('Ok')
 }).catch(e => {
   console.error(e)
