@@ -2,7 +2,7 @@ const Building = require('./building')
 
 class Shipyard extends Building {
   constructor (planet, value, expiration) {
-    super(planet.name, 'station', 'shipyard', value, expiration)
+    super(planet.name, 'facilities', 'shipyard', value, expiration)
     this.planetObj = planet
 
     this.ids = {
@@ -24,8 +24,9 @@ class Shipyard extends Building {
   }
 
   async raid (page, { galaxy, system, position }, vessels) {
-    await this.forcePlanet(page)
-    await this.forcePage(page, 'fleet1')
+    // await this.forcePlanet(page)
+    // await this.forcePage(page, 'ingame', 'fleetdispatch')
+    await page.navigate(this.planet, 'ingame', 'fleetdispatch')
 
     if (!vessels) {
       await page.click('#sendall')
@@ -60,8 +61,9 @@ class Shipyard extends Building {
   }
 
   async build (page, vessel, quantity) {
-    await this.forcePlanet(page)
-    await this.forcePage(page, 'shipyard')
+    // await this.forcePlanet(page)
+    // await this.forcePage(page, 'ingame', 'shipyard')
+    await page.navigate(this.planet, 'ingame', 'shipyard')
 
     await page.click(`#details${this.ids[vessel]}`)
     await this.sleep(2000)

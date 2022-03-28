@@ -22,11 +22,10 @@ class Scenario {
     })
   }
 
-  async forcePage (page, pageType, force) {
-    if (force || !page.url().match(`page=${pageType}`)) {
-      await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${pageType}`)
-      await this.sleep(2000)
-    }
+  async forcePage (browser, page, component) {
+    console.log('FORCING PAGE', page, component)
+    await browser.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${page}${component ? `&component=${component}` : ''}`)
+    await this.sleep(2000)
   }
 
   isAppliable () {

@@ -91,6 +91,7 @@ class WatchDog extends Scenario {
 
   async loop (page) {
     try {
+      console.log('Watchdog check')
       await this.watchDogCheck(page)
     } catch (e) {
       const time = new Date()

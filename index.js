@@ -19,7 +19,9 @@ const main = async function () {
   //   localStorage.setItem('AGO_FR_UNI126_163847_SPY_TABLE_DATA', '{"sortDesc": true, "sortSequence": "loot", "checkedMessages": []}')
   // })
   await sleep(1000)
-  await this.page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=overview`)
+
+  await this.page.click(config.selectors.homepage)
+  // await this.page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=ingame&compenent=overview`)
   await sleep(5000)
 
   const planetsId = await this.page.$$eval('span.planet-koords', els => {
@@ -27,6 +29,8 @@ const main = async function () {
       return item.parentNode.parentNode.id
     })
   })
+
+  console.log(planetsId)
 
   const researches = {
     energy: new Research('energy', 0, new Date()),
@@ -51,14 +55,15 @@ const main = async function () {
   for (let planet of planetsId) {
     planets[planet] = new Planet({ config: config.universe, researches, name: planet })
     await planets[planet].setCoordinates(this.page)
+    await planets[planet].autoRevalidate(this.page)
   }
 
-  // const SinglePlanet = require('./scenarios/single-planet')
+  const SinglePlanet = require('./scenarios/single-planet')
   // const InactiveRaid = require('./scenarios/inactive-raid')
   const WatchDog = require('./scenarios/watchdog')
   const scenarios = [
-    new WatchDog(planets, researches, {})
-    // new SinglePlanet(planets, researches, {}),
+    new WatchDog(planets, researches, {}),
+    new SinglePlanet(planets, researches, {}),
     // new InactiveRaid(planets, researches, {})
   ]
 
@@ -105,23 +110,6 @@ const main = async function () {
     isRunning = true
 
     try {
-      /**
-       * TMP COMMENT
-       * UNCOMMENT WHEN EVERYTHING IS IN A DB AND WE CAN IMPORT AT STARTUP
-       */
-      // Revalidate planets
-      // for (let name of Object.keys(planets)) {
-      //   const planet = planets[name]
-      //   await planet.autoRevalidate(this.page)
-      // }
-      // // Revalidate researches
-      // for (let name of Object.keys(researches)) {
-      //   const research = researches[name]
-      //   if (!research.isValid()) {
-      //     await research.autoRevalidate(this.page)
-      //   }
-      // }
-
       for (let scenario of scenarios) {
         if (scenario.isAppliable()) {
           await scenario.loop(this.page)

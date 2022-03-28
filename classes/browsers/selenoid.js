@@ -2,6 +2,7 @@ const { remote } = require('webdriverio');
 const path = require('path');
 const { sleep } = require('../../utils');
 const fs = require('fs')
+const config = require('../../config')
 
 const extension = fs.readFileSync('antigamereborn-7.2.1-an+fx.xpi')
 
@@ -10,6 +11,7 @@ const options = {
     hostname: 'localhost',
     port: 4444,
     path: '/wd/hub',
+    logLevel: 'warn',
     capabilities: {
         browserName: 'firefox', 
         browserVersion: '98.0',
@@ -34,16 +36,18 @@ class Browser {
     return this.browser.url(url)
   }
 
+  async switchWindow (matcher) {
+    await this.browser.switchWindow(matcher)
+    return this
+  }
+
   async $ (selector) {
     let element = null
 
     while (!element || element.error) {
       element = await this.browser.$(selector)
-
-      console.log(element)
-
       if (element.error) {
-        console.log('COULD NOT FIND ELEMENT', element.error)
+        console.error('COULD NOT FIND ELEMENT', element.error)
         await sleep(1000)
       }
     }
@@ -61,13 +65,15 @@ class Browser {
   }
 
   async $eval (selector, callback) {
-    console.error('$eval is not implemented, called with', ...arguments)
-    // TODO
+    const finalCallback = Function(`const callback = ${callback.toString()}; const el = document.querySelector('${selector}'); return callback(el);`)
+
+    return this.browser.execute(finalCallback)
   }
 
   async $$eval (selector, callback) {
-  console.error('$$eval is not implemented, called with', ...arguments)
-    // TODO
+    const finalCallback = Function(`const callback = ${callback.toString()}; const els = document.querySelectorAll('${selector}'); const elements = []; for (const el of els) { elements.push(el) }; return callback(elements);`)
+
+    return this.browser.execute(finalCallback)
   }
 
   async evaluate (callback) {
@@ -83,6 +89,17 @@ class Browser {
   async goTo (url) {
     console.error('goTo is not implemented, called with', ...arguments)
     // TODO
+  }
+
+  async navigate (planet, page, component) {
+    if (this.planet !== planet || this.page !== page || this.component !== component) {
+      this.planet = planet
+      this.page = page
+      this.component = component
+      console.log(`Navigating to https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${page}&cp=${planet.split('-')[1]}${component ? `&component=${component}` : ''}`)
+      return this.browser.url(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${page}&cp=${planet.split('-')[1]}${component ? `&component=${component}` : ''}`)
+    }
+    console.log(`Already at https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${page}&cp=${planet.split('-')[1]}${component ? `&component=${component}` : ''}`)
   }
 }
 

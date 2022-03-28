@@ -32,7 +32,7 @@ class InactiveRaid extends Scenario {
   }
 
   async findTargets (page, count = 1) {
-    await this.forcePage(page, 'galaxy')
+    await this.forcePage(page, 'ingame', 'galaxy')
 
     let targets = []
 

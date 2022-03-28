@@ -7,6 +7,10 @@ const login = async (browser, firstLogin) => {
   await page.goto(`https://${firstLogin ? 'fr' : 'lobby'}.ogame.gameforge.com/`)
 
   if (firstLogin) {
+
+    try {
+      await page.click(config.selectors.acceptCookies)
+    } catch (err) {}
     await page.click(config.selectors.loginTab)
     // await page.click('#ui-id-1')
     await page.type(config.selectors.loginEmailField, config.account.username)
@@ -22,28 +26,31 @@ const login = async (browser, firstLogin) => {
   if (!firstLogin) {
     return page
   }
+
+  page = await browser.switchWindow('index.php')
+
+  await sleep(500)
   // LOAD AGO CONFIG
-  try {
-    // throw new Error('XD')
-    await page.click('#ago_menubutton')
-    await sleep(1500)
-    await page.click('#ago_menu_Data')
-    await sleep(1500)
-    // await page.type('#ago_menu_D9C', config.AGO.configString, { delay: 0 })
-    await page.$eval('#ago_menu_D9C', (el, args) => {
-      el.value = args[0]
-      // return args
-    }, [config.AGO.configString])
-    await sleep(1500)
-    await page.click('#ago_menu_button_D80')
-    await sleep(1500)
-    await page.click('#ago_menu_button_D9E')
-    await sleep(1500)
-  } catch (e) {
-    console.error('Could not load AGO config', e)
-  }
-  const nPages = await browser.pages()
-  return nPages[0]
+  // try {
+  //   // throw new Error('XD')
+  //   await page.click('#ago_menubutton')
+  //   await sleep(1500)
+  //   await page.click('#ago_menu_Data')
+  //   await sleep(1500)
+  //   // await page.type('#ago_menu_D9C', config.AGO.configString, { delay: 0 })
+  //   // await page.$eval('#ago_menu_D9C', (el, args) => {
+  //   //   el.value = args[0]
+  //   //   // return args
+  //   // }, [config.AGO.configString])
+  //   await sleep(1500)
+  //   await page.click('#ago_menu_button_D80')
+  //   await sleep(1500)
+  //   await page.click('#ago_menu_button_D9E')
+  //   await sleep(1500)
+  // } catch (e) {
+  //   console.error('Could not load AGO config', e)
+  // }
+  return page
 }
 
 module.exports = {

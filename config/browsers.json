@@ -5,8 +5,17 @@
           "98.0": {
               "image": "selenoid/firefox:98.0",
               "port": "4444",
-              "path": "/wd/hub",
-              "volumes": ["/Users/thomas.molina/ff:/ff-profile"]
+              "path": "/wd/hub"
+          }
+      }
+  },
+  "chrome": {
+      "default": "98.0",
+      "versions": {
+          "98.0": {
+              "image": "selenoid/chrome:98.0",
+              "port": "4444",
+              "path": "/"
           }
       }
   }
