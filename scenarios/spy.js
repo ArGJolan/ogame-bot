@@ -51,8 +51,9 @@ class Spy extends Scenario {
    * @param {Number} maxFleets - Max number of fleets
    */
   async spyFromPlanet (page, planet, systemDelta, maxFleets) {
-    await planet.forcePlanet(page)
-    await this.forcePage(page, 'galaxy')
+    // await planet.forcePlanet(page)
+    // await this.forcePage(page, 'ingame', 'galaxy')
+    await page.navigate(planet.name, 'ingame', 'galaxy')
 
     const { system } = planet.getCoordinates()
 
@@ -75,6 +76,7 @@ class Spy extends Scenario {
    * @param {Number} systemDelta - Distance at right & left to spy
    */
   async action (page, { planetsCoordinates, systemDelta }) {
+    console.log('Spy.action')
     if (!planetsCoordinates || !systemDelta) {
       throw new Error('Invalid parametters, expected planetsCoordinates, systemDelta')
     }

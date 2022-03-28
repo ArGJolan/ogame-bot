@@ -38,25 +38,26 @@ class Research extends Data {
   }
 
   async autoRevalidate (page) {
-    await this.forcePage(page, 'research')
+    await this.forcePage(page, 'ingame', 'research')
 
-    const value = await page.$eval(`#details${this.id} span.level`, el => {
-      return +el.innerText.split('\n')[1]
+    console.log(`li[data-technology="${this.id}"] span.level`)
+    const value = await page.$eval(`li[data-technology="${this.id}"] span.level`, el => {
+      return +el.innerText
     })
     this.revalidate(value)
   }
 
   async upgrade (page) {
     console.log('UPGRADING', this.name)
-    await this.forcePage(page, 'research', true)
+    await this.forcePage(page, 'ingame', 'research')
 
-    await page.click(`.research${this.id} a.fastBuild`)
+    await page.click(`li[data-technology="${this.id}"] button.upgrade`)
 
     await this.sleep(2000)
-    const value = await page.$eval('#inhalt > div.content-box-s > div.content > table > tbody', el => {
+    const value = await page.$eval('#countdownresearchDetails', el => {
       return el.innerHTML
     })
-    const match = value.match(/<span id="researchCountdown">([0-9]*h |)([0-9]*m |)([0-9]*s)<\/span>/)
+    const match = value.match(/([0-9]*h |)([0-9]*m |)([0-9]*s)/)
     const hours = +match[1].split('h')[0]
     const minutes = +match[2].split('m')[0]
     const seconds = +match[3].split('s')[0]

@@ -3,7 +3,7 @@ const Data = require('./data')
 class Building extends Data {
   /**
    * @param {String} planet - name of the planet
-   * @param {String} type - type of building (can be 'resources' or 'station')
+   * @param {String} type - type of building (can be 'supplies' or 'facilities')
    * @param {String} name - name of the building (e.g 'metalMine')
    * @param {Number} level - Level of the building
    * @param {Date} expiration - Data expiration
@@ -19,16 +19,16 @@ class Building extends Data {
       crystalMine: 2,
       deuteriumMine: 3,
       solarPlant: 4,
-      fusionPlant: 5,
-      metalStorage: 7,
-      crystalStorage: 8,
-      deuteriumStorage: 9,
-      robotFactory: 0,
-      naniteFactory: 5,
-      shipyard: 1,
-      laboratory: 2,
-      terraformer: 6,
-      missileBay: 4
+      fusionPlant: 12,
+      metalStorage: 22,
+      crystalStorage: 23,
+      deuteriumStorage: 24,
+      robotFactory: 14,
+      naniteFactory: 15,
+      shipyard: 21,
+      laboratory: 31,
+      terraformer: 33,
+      missileBay: 44,
     })[name]
   }
 
@@ -118,32 +118,36 @@ class Building extends Data {
   }
 
   async autoRevalidate (page) {
-    await this.forcePlanet(page, this.planet)
-    await this.forcePage(page, this.type)
-
-    const value = await page.$eval(`#button${this.id} span.level`, el => {
-      return +el.innerText.split('\n')[1]
+    await page.navigate(this.planet, 'ingame', this.type)
+    // await this.forcePlanet(page, this.planet)
+    // await this.forcePage(page, 'ingame', this.type)
+    
+    console.log(`li[data-technology="${this.id}"] span.level`)
+    const value = await page.$eval(`li[data-technology="${this.id}"] span.level`, el => {
+      return +el.innerText
     })
     this.revalidate(value)
   }
 
   async upgrade (page) {
     console.log('UPGRADING', this.name)
-    await this.forcePlanet(page, this.planet)
-    await this.forcePage(page, this.type, true)
+    await page.navigate(this.planet, 'ingame', this.type)
+    // await this.forcePlanet(page, this.planet)
+    // await this.forcePage(page, 'ingame', this.type)
 
-    await page.click(`#button${this.id} a.fastBuild`)
+    await page.click(`li[data-technology="${this.id}"] button.upgrade`)
 
     await this.sleep(2000)
-    const value = await page.$eval('#inhalt > div.content-box-s > div.content > table > tbody', el => {
+    const value = await page.$eval('#countdownbuildingDetails', el => {
       return el.innerHTML
     })
-    const match = value.match(/<span id="Countdown">([0-9]*h |)([0-9]*m |)([0-9]*s)<\/span>/)
+    const match = value.match(/([0-9]*h |)([0-9]*m |)([0-9]*s)/)
     const hours = +match[1].split('h')[0]
     const minutes = +match[2].split('m')[0]
     const seconds = +match[3].split('s')[0]
     const expires = new Date()
     expires.setSeconds(expires.getSeconds() + 3600 * hours + 60 * minutes + seconds + 5)
+    console.log('Setting expiration to', expires)
     this.setExpiration(expires)
     return expires
   }
@@ -152,15 +156,11 @@ class Building extends Data {
     return Data.getValue.bind(this)()
   }
 
-  async forcePlanet (page, planet = this.planet, force) {
+  async forcePlanet (page, planet = this.planet) {
     try {
-      const curentPlanet = await page.$eval('a.planetlink.active', el => {
-        return el.parentNode.id
-      })
-      if (force || curentPlanet !== planet) {
-        await page.click(`#${planet} > a.planetlink`)
-        await this.sleep(2000)
-      }
+      console.log('FORCING PLANET', `#${planet} > a.planetlink`)
+      await page.click(`#${planet} > a.planetlink`)
+      await this.sleep(2000)
     } catch (e) {
       console.error('[BUILDING] FAILED TO SWITCH PLANET', e)
     }

@@ -19,6 +19,7 @@ class Data {
   }
 
   async autoRevalidate (page) {
+    console.log('Autorevalidating data', this.name)
     return this.autoRevalidateMethod(page)
   }
 
@@ -28,24 +29,19 @@ class Data {
     })
   }
 
-  async forcePage (page, pageType, force) {
-    if (force || !page.url().match(`page=${pageType}`)) {
-      await page.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${pageType}`)
-      await this.sleep(2000)
-    }
+  async forcePage (browser, page, component) {
+    console.log('FORCING PAGE', page, component)
+    await browser.goto(`https://s${config.account.server}-fr.ogame.gameforge.com/game/index.php?page=${page}${component ? `&component=${component}` : ''}`)
+    await this.sleep(2000)
   }
 
-  async forcePlanet (page, planet = this.planet, force) {
+  async forcePlanet (page, planet = this.planet || this.name) {
     try {
-      const curentPlanet = await page.$eval('a.planetlink.active', el => {
-        return el.parentNode.id
-      })
-      if (force || curentPlanet !== planet) {
-        await page.click(`#${planet} > a.planetlink`)
-        await this.sleep(2000)
-      }
+      console.log('FORCING PLANET', `#${planet} > a.planetlink`)
+      await page.click(`#${planet} > a.planetlink`)
+      await this.sleep(2000)
     } catch (e) {
-      console.error('[DATA] FAILED TO SWITCH PLANET', e)
+      console.error('[BUILDING] FAILED TO SWITCH PLANET', e)
     }
   }
 

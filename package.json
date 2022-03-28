@@ -12,7 +12,9 @@
     "express": "^4.16.4",
     "lodash": "^4.17.11",
     "puppeteer": "^1.13.0",
+    "puppeteer-core": "^13.5.1",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "webdriverio": "^7.19.1"
   }
 }

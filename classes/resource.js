@@ -11,13 +11,15 @@ class Resource extends Data {
   }
 
   async autoRevalidate (page) {
-    await this.forcePlanet(page, this.planet.name)
+    // await this.forcePlanet(page, this.planet.name)
+    await page.navigate(this.planet.name, 'ingame', 'overview')
 
     const value = await page.$eval(`#resources_${this.type}`, el => +(el.innerHTML.replace(/\./g, '')))
     this.revalidate(value)
   }
 
   revalidate (value) {
+    console.log('======= REVALIDATING', this.type, this.planet && this.planet.name, '...')
     Data.revalidate.bind(this)(this.name, value, new Date('2030/12/31'))
     this.initDate = new Date()
     if (this.type !== 'energy') {

@@ -21,7 +21,7 @@ class Raid extends Scenario {
      * TODO: Remove reports with activity
      */
     for (let i = 0; i < 50; i++) {
-      await this.forcePage(page, 'messages', true)
+      await this.forcePage(page, 'messages')
       await this.sleep(2500)
       await page.click('input[name=delEspLoot]')
       await this.sleep(500)
@@ -78,7 +78,8 @@ class Raid extends Scenario {
           maxFleets = 0
         }
         const planet = this.getClosestPlanet(planetsCoordinates, coords)
-        await planet.forcePlanet(page)
+        await page.navigate(planet.name, 'messages')
+        // await planet.forcePlanet(page)
         await this.sleep(2500)
         await page.click(`#spyTable .row:nth-child(${spyCount}) a.spyTableIcon.icon_attack`)
         await this.sleep(2500)

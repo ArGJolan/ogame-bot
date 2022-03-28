@@ -1,4 +1,15 @@
 module.exports = {
+  selectors: {
+    homepage: '#menuTable > li:nth-child(1) > a',
+    acceptCookies: '.cookiebanner4 .cookiebanner5:nth-child(2)',
+    loginTab: '#loginRegisterTabs.tabs ul.tabsList li:nth-child(1) span',
+    registerTab: '#loginRegisterTabs.tabs ul.tabsList li:nth-child(2) span',
+    loginEmailField: '#loginForm input[name=email]',
+    loginPasswordField: '#loginForm input[name=password]',
+    loginSubmit: '#loginForm button[type=submit]',
+    joingame: '#joinGame > button',
+  },
+  browser: 'selenoid',
   universe: {
     speed: 7,
     metalRatio: 1,
