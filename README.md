@@ -11,4 +11,4 @@ curl -sfLO "https://github.com/aerokube/cm/releases/download/1.8.1/cm_linux_amd6
 docker run -d --network selenoid --name selenoid-ui -p 8080:8080 aerokube/selenoid-ui --selenoid-uri http://selenoid:4444
 ```
 
-VNC in a browser:
+VNC in a browser: https://novnc.com/noVNC/vnc.html?host=localhost&port=4444&path=vnc/SESSION_ID&password=selenoid
